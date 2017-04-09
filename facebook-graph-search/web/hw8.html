@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+  <title>Facebook Search</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1859699070979630',
+      xfbml      : true,
+      version    : 'v2.8'
+    });
+    FB.AppEvents.logPageView();
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
+    <link rel="stylesheet" href="hw8.css">
+  <script src="hw8.js"></script>
+    
+</head>
+    
+<body>
+    <div ng-app="mySelect" ng-controller="myCon" ng-init="getLocation();keyword=undefined;myVar='user';res=null;detail_content=null;detail_host=null;comeback=false;comeDetail=true"> 
+    <div class="container all">
+        <div class="row row1">  
+          <form class="fo1">  
+            <div class="col-sm-3 fi">
+                 FB Search
+            </div>
+            <div class="col-sm-9">
+                <div class="form-group">
+                    <div class="col-xs-8">
+                        <input type="text" id="key" data-toggle="tooltip" data-placement="bottom" title="Please type a keyword" class="form-control degree" placeholder="type something..." ng-model="tmp" required>
+                    </div>
+                    <div class="col-xs-2">
+                        <button type="button" id="go" class="form-control btn btn-default search" ng-click="keyword=tmp;res = null;mySearch()">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </div>
+                    <div class="col-xs-2">
+                        <input type="button" class="btn btn-default edge degree"  value="Clear" ng-click="clear()">
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+        
+        <ul class="nav nav-pills nav-justified" >
+            <li id="user" class="active"><a data-toggle="pill" ng-click="myVar='user';res = null;mySearch()">Users</a></li>
+            <li id="page"><a data-toggle="pill" ng-click="myVar='page';res = null;mySearch()">Pages</a></li>
+            <li id="event"><a data-toggle="pill" ng-click="myVar='event';res = null;mySearch()">Events</a></li>
+            <li id="place"><a data-toggle="pill" ng-click="myVar='place';getLocation();res = null;mySearch()">Places</a></li>
+            <li id="group"><a data-toggle="pill" ng-click="myVar='group';res = null;mySearch()">Groups</a></li>
+            <li id="favorite"><a data-toggle="pill" ng-click="myVar='favorite';display()">Favorites</a></li>
+        </ul>
+        <br/>
+        
+        <br/>
+        <div class="result" >
+            
+            <div ng-class="{backlist:comeback}" ng-show="detail_host == null">
+                <div ng-if="myVar == 'favorite'">
+                    <div class="table-responsive">
+                    <table class="table table-hover" >
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Profile photo</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Favorite</th>
+                        <th>Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="y in localStorage" >
+                       <td>{{$index + 1}}</td>
+                        <td><a href="{{y.picture.data.url}}"><img ng-src="{{y.picture.data.copy}}" class="img-circle" id="{{y.id}}"alt="Cinque Terre" width="40" height="40"></a></td>
+                       <td>{{y.name}}</td>
+                       <td>{{y.type}}</td>
+                       <td><button type="button" class="btn btn-default btn-sm" ng-click="remove(y)"><span class="glyphicon glyphicon-trash"></span></button></td>
+                       <td><button type="button" class="btn btn-default btn-sm" ng-click="imgs=null;detail(y)"><span class="glyphicon glyphicon-chevron-right"></span></button></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div ng-if="myVar != 'favorite' && keyword != null" >
+                    <div ng-if="res == null" class="progress" style="margin-top:30px;">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar"aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width:50%">
+                        </div>
+                    </div>
+                    <div ng-if="res != null">
+                        <div class="table-responsive">
+                         <table class="table table-hover" >
+                        <thead>
+                            <tr>
+                            <th>#</th>
+                            <th>Profile photo</th>
+                            <th>Name</th>
+                            <th>Favorite</th>
+                            <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="x in res">
+                            <td>{{$index + 1}}</td>
+                            <td><a ng-href="{{x.picture.data.url}}" target="_blank"><img ng-src="{{x.picture.data.url}}"class="img-circle" id="{{x.id}}"alt="Cinque Terre" width="40" height="40" crossOrigin="anonymous"></a></td>
+                            <td>{{x.name}}</td>
+                            <td>
+                                <button type="button" class="btn btn-default btn-sm" ng-click="updateFavo(x)">
+                                    <span ng-if="isExist(x)" class="glyphicon glyphicon-star FavoColor"></span>
+                                    <span ng-if="!isExist(x)" class="glyphicon glyphicon-star-empty"></span>
+                                
+                                </button>
+                            </td>
+                            <td><button type="button" class="btn btn-default btn-sm" ng-click="imgs=null;detail(x)"><span class="glyphicon glyphicon-chevron-right"></span></button></td>
+                                            
+                            </tr>
+                        </tbody>
+                        </table>
+                        </div>
+                        <div class="pageChoice">
+                        <button type="button" class="btn btn-default" ng-if="previous != null" ng-click="moreSearch('pre')">previous</button>
+                        <button type="button" class="btn btn-default" ng-if="next != null" ng-click="moreSearch('nex')">next</button>
+                        </div>
+                    </div>
+                 </div>
+                </div>
+              
+              
+            
+            <div ng-class="{detail:comeDetail}"  ng-show="detail_host != null">
+                <button type="button" class="btn btn-default btn-sm" ng-click="back()"><span class="glyphicon glyphicon-chevron-left">Back</span></button>
+                <div style="float:right">
+                    <button type="button" class="btn btn-default btn-sm" ng-click="updateFavo(detail_host)">
+                                <span ng-if="isExist(detail_host)" class="glyphicon glyphicon-star FavoColor"></span>
+                                <span ng-if="!isExist(detail_host)" class="glyphicon glyphicon-star-empty"></span>
+                                
+                    </button>
+                    <button type="button"class="btn btn-default btn-sm" ng-click="postFB()"><img ng-src="http://cs-server.usc.edu:45678/hw/hw8/images/facebook.png"width="20" height="20"></button>
+                </div>
+                <br/>
+                 <br/>
+                 
+                <div class="container anim" >
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Albums</div>
+                                    
+                                <div class="panel-body">
+                                    <div ng-if="albums === undefined" class="progress">
+                                        <div class="progress-bar progress-bar-striped active" role="progressbar"aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width:50%">
+                                        </div>
+                                    </div>
+                                    <div ng-if="albums === null">
+                                        <div class="panel panel-warning">
+                                            <div class="panel-heading">No data found</div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="albums != null">
+                                        <div class="accordion-2 panel-group" id="alb" ng-init="m=0" close-others="true">
+                                            <div class="panel panel-default" ng-init="current=$parent.m" ng-repeat="al in albums">
+                                                <div class="panel-heading" ng-init="$parent.m = $parent.m + al.photos.data.length">
+                                                    <h4 class="panel-title">
+                                                        <a data-toggle="collapse" 
+                                                           data-parent="#alb"
+                                                           href="#collapse{{$index}}">{{al.name}}</a>
+                                                    </h4>
+                                                </div>
+                                                <div id="collapse{{$index}}" class="panel-collapse collapse" ng-class='{in:$first}' >
+                                                    <div class="panel-body">
+                                                        
+                                                        <img class="img-rounded img-responsive" ng-if="al.photos.data.length > 0" ng-src="{{imgs[current].data.url}}">
+                                                        
+                                                        <br/>
+                                                        <img class="img-rounded img-responsive" ng-if="al.photos.data.length > 1"  ng-src="{{imgs[current+1].data.url}}">
+                                                        
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Posts</div>
+                                <div class="panel-body">
+                                    <div ng-if="posts === undefined" class="progress">
+                                        <div class="progress-bar progress-bar-striped active" role="progressbar"aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width:50%">
+                                        </div>
+                                    </div>
+                                    <div ng-if="posts === null">
+                                        <div class="panel panel-warning">
+                                            <div class="panel-heading">No data found</div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="posts != null">
+                                    <div class="panel panel-default" ng-repeat="aPost in posts">
+                                        <div class="panel-body">
+                                            <img style="float:left;margin-right:20px" ng-src="{{detail_host.picture.data.url}}" width="40px" height="40px">
+                                            <span ><b>{{detail_host.name}}</b></span>
+                                            <br/>
+                                            <span style="color:gray">{{time(aPost)}}</span>
+                                            <br/>
+                                            <br/>
+                                            <div>{{aPost.message}}</div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            
+            
+                
+           
+        </div>
+        </div>
+    </div>
+         
+    </div>
+      
+    
+</body>
+</html>
